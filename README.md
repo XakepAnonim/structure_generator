@@ -6,4 +6,13 @@
 
 Установите пакет через pip:
 ```bash
-pip install structure-generator
+pip install structure-generator-by-xakepanonim==0.1.0
+```
+
+## Как пользоваться
+
+Перед тем как использовать пакет, убедитесь что находитесь в корневой папке проекта и запустите команду:
+
+```bash
+generate-structure .
+```
