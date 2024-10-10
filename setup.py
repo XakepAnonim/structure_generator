@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="structure-generator",
+    name="structure-generator-by-xakepanonim",
     version="0.1.0",
     author="XakepAnonim",
     description="Библиотека для генерации описания структуры проекта в README.md",
