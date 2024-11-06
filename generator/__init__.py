@@ -1,3 +1,3 @@
-from .generator import generate_readme_structure
+from .generator import generate_structure_file
 
-__all__ = ["generate_readme_structure"]
+__all__ = ["generate_structure_file"]
