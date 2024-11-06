@@ -29,6 +29,7 @@ generate-structure .
 
 - `exclude` — список файлов, которые необходимо исключить из генерации
 - `read_docstrings` — если `true`, то будет считано описание документации для каждого файла
+- `output_file` — путь к файлу, в который будет сохранено описание архитектуры
 
 Пример настройки в `structure.toml`:
 ```toml
@@ -39,6 +40,7 @@ exclude = [
 ]
 
 read_docstrings = true
+output_file = "README.md"
 ```
 
 Пример настройки в `pyproject.toml`:
@@ -51,4 +53,5 @@ exclude = [
 ]
 
 read_docstrings = true
+output_file = "README.md"
 ```
