@@ -1,5 +1,6 @@
 import os
 import toml
+import re
 
 DEFAULT_EXCLUDED_ITEMS = {
     'venv',
@@ -22,7 +23,7 @@ DEFAULT_EXCLUDED_ITEMS = {
 
 def load_config(
     project_root,
-    config_files=("structure_config.toml", "structure.toml", "pyproject.toml")
+    config_files=("structure.toml", "pyproject.toml")
 ):
     """
     Пытается загрузить конфигурацию из нескольких возможных TOML файлов.
@@ -30,7 +31,8 @@ def load_config(
 
     config = {
         'exclude': set(),
-        'read_docstrings': True  # default
+        'read_docstrings': True,  # default
+        'output_file': "README.md"  # default
     }
 
     for config_file in config_files:
@@ -49,9 +51,13 @@ def load_config(
                         config['read_docstrings'] = tool_config.get(
                             'read_docstrings', True
                         )
+                        config['output_file'] = tool_config.get(
+                            'output_file', "README.md"
+                        )
                 else:
                     config['exclude'] = set(config_data.get('exclude', []))
                     config['read_docstrings'] = config_data.get('read_docstrings', True)
+                    config['output_file'] = config_data.get('output_file', "README.md")
             break
     return config
 
@@ -64,28 +70,28 @@ def extract_docstring(file_path):
     docstring = None
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
-            lines = file.readlines()
-            # Пробуем найти докстринг в первых нескольких строках файла
-            if lines and lines[0].strip().startswith('"""'):
-                docstring_lines = []
-                for line in lines[1:]:
-                    if line.strip().startswith('"""'):
-                        break
-                    docstring_lines.append(line.strip())
-                docstring = " ".join(docstring_lines).strip()
+            content = file.read()
+            docstring_match = re.match(
+                r'^[ \t]*("""(.*?)"""|\'\'\'(.*?)\'\'\')', content, re.DOTALL
+            )
+            if docstring_match:
+                docstring = docstring_match.group(2) or docstring_match.group(3)
+                docstring = docstring.strip()
     except Exception as e:
         print(f"Ошибка при чтении файла {file_path}: {e}")
     return docstring
 
 
-def generate_readme_structure(project_root):
+def generate_structure_file(project_root):
     """
-    Генерирует README.md с архитектурой проекта на основе файловой структуры.
+    Генерирует файл с архитектурой проекта на основе файловой структуры.
+    Файл может быть указан в конфигурации TOML.
     """
 
     config = load_config(project_root)
     excluded_items = DEFAULT_EXCLUDED_ITEMS.union(config['exclude'])
     read_docstrings = config['read_docstrings']
+    output_file = config['output_file']
 
     architecture_content = "```angular2html\n"
     architecture_content += generate_structure(
@@ -95,19 +101,19 @@ def generate_readme_structure(project_root):
     )
     architecture_content += "\n```"
 
-    readme_path = os.path.join(project_root, "README.md")
+    output_path = os.path.join(project_root, output_file)
 
-    if os.path.exists(readme_path):
-        with open(readme_path, "a", encoding="utf-8") as readme_file:
-            readme_file.write("\n\n# Архитектура\n\n")
-            readme_file.write(architecture_content)
-        print(f"Архитектура проекта успешно добавлена в существующий README.md в "
-              f"{readme_path}")
+    if os.path.exists(output_path):
+        with open(output_path, "a", encoding="utf-8") as output_file:
+            output_file.write("\n\n# Архитектура\n\n")
+            output_file.write(architecture_content)
+        print(f"Архитектура проекта успешно добавлена в существующий файл "
+              f"{output_path}")
     else:
-        with open(readme_path, "w", encoding="utf-8") as readme_file:
-            readme_file.write("# Архитектура\n\n")
-            readme_file.write(architecture_content)
-        print(f"README.md с архитектурой проекта успешно создан в {readme_path}")
+        with open(output_path, "w", encoding="utf-8") as output_file:
+            output_file.write("# Архитектура\n\n")
+            output_file.write(architecture_content)
+        print(f"Файл {output_path} с архитектурой проекта успешно создан")
 
 
 def generate_structure(path, excluded_items, read_docstrings=True, prefix=""):
@@ -151,7 +157,7 @@ def main():
         print("Использование: generate-structure <путь_до_проекта>")
     else:
         project_root = sys.argv[1]
-        generate_readme_structure(project_root)
+        generate_structure_file(project_root)
 
 
 if __name__ == "__main__":
